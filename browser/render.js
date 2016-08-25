@@ -1,6 +1,6 @@
 const domEls = {};
 
-function renderTemlate() {
+function renderTemplate() {
   const container = document.createElement('div');
   container.innerHTML =`
     <div class='x-wrap'>
@@ -130,5 +130,5 @@ function syncStateWithTemplate(state) {
 }
 
 module.exports = {
-  renderTemlate, syncStateWithTemplate
+  renderTemplate, syncStateWithTemplate
 };

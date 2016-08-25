@@ -1,60 +1,6 @@
 require('isomorphic-fetch');
 const fetchEmailFromText = require('./fetchEmailFromText.js');
-
-
-function checkResponseStatus(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return response;
-  } else {
-    var error = new Error(response.statusText);
-    error.response = response;
-    throw error;
-  }
-}
-
-function parseJSON(response) {
-  return response.json()
-}
-
-function checkInstagramJsonStatus(payload) {
-  if (payload.status !== 'ok') {
-    throw new Error('Response json status isn\'t "OK"');
-  }
-  return payload;
-}
-
-
-function handleFetchError(error) {
-  alert(`Request failed: ${error.message}`);
-}
-
-
-
-function instaQuery(q) {
-  return fetch('https://www.instagram.com/query/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      // cookie are used from browser
-      'x-csrftoken': window._sharedData.config.csrf_token,
-
-      'accept-encoding': 'gzip, deflate',
-      'x-requested-with': 'XMLHttpRequest',
-      'pragma': 'no-cache',
-      'x-instagram-ajax': 1,
-      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'accept': 'application/json, text/javascript, */*; q=0.01',
-      'cache-control': 'no-cache',
-      'authority': 'www.instagram.com',
-      'referer': 'https://www.instagram.com/explore/locations/60164/'
-    },
-    body: 'q=' + encodeURIComponent(q)
-  }).then(checkResponseStatus)
-    .then(parseJSON)
-    .then(checkInstagramJsonStatus)
-    .catch(handleFetchError);
-}
-
+const {instaQuery, getUserIdByName} = require('./instagramClient.js');
 
 function processUser(user) {
   if (!user.biography) { return null; }
@@ -168,34 +114,11 @@ function getForTag(tag, newDataCB, endCB, stopCB, queryCountPart = `first(${MAX_
     });
 }
 
-
-function getUserIdByName(name) {
-  return fetch(`https://www.instagram.com/${name}/?__a=1`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      // cookie are used from browser
-      'accept-encoding': 'gzip, deflate',
-      'x-requested-with': 'XMLHttpRequest',
-      'pragma': 'no-cache',
-      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'accept': 'application/json, text/javascript, */*; q=0.01',
-      'cache-control': 'no-cache',
-      'authority': 'www.instagram.com',
-      'referer': 'https://www.instagram.com/explore/locations/60164/'
-    }
-  }).then(checkResponseStatus)
-    .then(parseJSON)
-    .catch(handleFetchError)
-    .then(({user: {id}}) => id);
-}
-
-
 function getFollowersByUserName(name, doWithUsers, doEnd, stopCB) {
   getUserIdByName(name).then(id => getFollowers(id, doWithUsers, doEnd, stopCB));
 }
 
 
 module.exports = {
-  getFollowers, getForLocation, getForTag, getUserIdByName, getFollowersByUserName
+  getFollowers, getForLocation, getForTag, getFollowersByUserName
 };
