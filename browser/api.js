@@ -1,12 +1,13 @@
 require('isomorphic-fetch');
 const fetchEmailFromText = require('./fetchEmailFromText.js');
-const {instaQuery, getUserIdByName} = require('./instagramClient.js');
+const {instaQuery, getUserIdByName} = require('./client.js');
 
 function processUser(user) {
   if (!user.biography) { return null; }
   const email = fetchEmailFromText(user.biography);
   if (!email) { return null; }
-  return Object.assign({}, user, {email});
+  const followers = user.followed_by.count;
+  return Object.assign({}, user, { email, followers});
 }
 
 function isPresent(obj) {
@@ -18,7 +19,7 @@ function processMedia({owner}) {
 }
 
 
-const MAX_PER_QUERY = 1000;
+const MAX_PER_QUERY = 250;
 function getFollowers(userId, newDataCB, endCB, stopCB, queryCountPart = `first(${MAX_PER_QUERY})`) {
   instaQuery(`
     ig_user(${userId}) {
@@ -32,7 +33,10 @@ function getFollowers(userId, newDataCB, endCB, stopCB, queryCountPart = `first(
           id,
           full_name,
           biography,
-          username
+          username,
+          followed_by {
+            count
+          }
         }
       }
     }
@@ -64,7 +68,10 @@ function getForLocation(locationId, newDataCB, endCB, stopCB, queryCountPart = `
             id,
             full_name,
             biography,
-            username
+            username,
+            followed_by {
+              count
+            }
           }
         }
       }
@@ -96,7 +103,10 @@ function getForTag(tag, newDataCB, endCB, stopCB, queryCountPart = `first(${MAX_
             id,
             full_name,
             biography,
-            username
+            username,
+            followed_by {
+              count
+            }
           }
         }
       }

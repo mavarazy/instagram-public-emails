@@ -26,7 +26,7 @@ function createWindow () {
   mainWindow.loadURL('https://www.instagram.com')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   electron.Menu.setApplicationMenu(menu);
 

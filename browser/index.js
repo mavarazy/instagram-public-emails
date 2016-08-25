@@ -1,8 +1,6 @@
-const {
-  getForLocation, getForTag, getFollowersByUserName
-} = require('./api.js');
+const { getForLocation, getForTag, getFollowersByUserName } = require('./api.js');
 const { saveAs } = require('file-saver');
-const { renderTemlate, syncStateWithTemplate } = require('./render.js');
+const { renderTemplate, syncStateWithTemplate } = require('./render.js');
 
 
 const state = {
@@ -19,7 +17,7 @@ function startApp() {
 
   const loginCheck = setInterval(() => {
       if (isLogedIn()) {
-        renderTemlate();
+        renderTemplate();
         syncStateWithTemplate(state);
         clearInterval(loginCheck);
       }
@@ -31,8 +29,8 @@ startApp();
 
 function doWithUsers(usersWithEmails) {
   state.total += usersWithEmails.length;
-  const newText = usersWithEmails.map(({email, full_name, username}) => {
-    return `${email}, "${(full_name && full_name.replace('"', '')) || username}"\n`;
+  const newText = usersWithEmails.map(({email, full_name, username, followers}) => {
+    return `${followers},${username},${email},"${(full_name && full_name.replace('"', '')) || username}"\n`;
   }).join('');
   state.csv += newText;
 
@@ -79,7 +77,7 @@ function shouldStopRequest() {
 function start() {
   state.total = 0;
   state.isRunning = true;
-  state.csv = 'Email, FullName\n';
+  state.csv = 'Followers, User, Email, FullName\n';
 
   syncStateWithTemplate(state);
 
@@ -88,12 +86,15 @@ function start() {
   const doWithUsersAndFilterUniqEmails = getFunctionToDoWithUsersAndFilterUniqEmails();
 
   if (splited[4] === 'locations') {
+    console.log("Searching by location");
     const locationId = splited[5];
     getForLocation(locationId, doWithUsersAndFilterUniqEmails, doEnd, shouldStopRequest);
   } else if (splited[4] === 'tags') {
+    console.log("Searching by tags");
     const tag = splited[5];
     getForTag(tag, doWithUsersAndFilterUniqEmails, doEnd, shouldStopRequest)
   } else if (splited.length === 5) {
+    console.log("Searching for followers");
     const name = splited[3];
     getFollowersByUserName(name, doWithUsersAndFilterUniqEmails, doEnd, shouldStopRequest);
   } else {

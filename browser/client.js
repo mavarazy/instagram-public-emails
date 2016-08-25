@@ -1,4 +1,5 @@
 require('isomorphic-fetch');
+let promiseRetry = require('promise-retry');
 
 function getUserIdByName(name) {
     return fetch(`https://www.instagram.com/${name}/?__a=1`, {
@@ -22,6 +23,13 @@ function getUserIdByName(name) {
 }
 
 function instaQuery(q) {
+    return promiseRetry((retry, number) => {
+        console.log('attempt number', number);
+        return tryInstaQuery(q).catch(retry);
+    }).catch(handleFetchError);
+}
+
+function tryInstaQuery(q) {
     return fetch('https://www.instagram.com/query/', {
         method: 'POST',
         credentials: 'include',
@@ -42,8 +50,7 @@ function instaQuery(q) {
         body: 'q=' + encodeURIComponent(q)
     }).then(checkResponseStatus)
         .then(parseJSON)
-        .then(checkInstagramJsonStatus)
-        .catch(handleFetchError);
+        .then(checkInstagramJsonStatus);
 }
 
 function checkResponseStatus(response) {
